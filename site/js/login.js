@@ -1,17 +1,7 @@
 // @ts-check
 // ログイン画面の共通処理（閲覧ページ・管理ページの両方で使う）
 import { clearToken, isLoggedIn, login } from "./api.js";
-
-/**
- * ページの要素を id で取り出す
- * @param {string} id
- * @returns {HTMLElement}
- */
-function byId(id) {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`要素が見つかりません: ${id}`);
-  return element;
-}
+import { byId, errorText } from "./dom.js";
 
 /**
  * ログイン画面とログイン後の画面を切り替える
@@ -43,7 +33,7 @@ export async function setupLogin(role, onLoggedIn) {
       showScreen(true);
       onLoggedIn();
     } catch (error) {
-      message.textContent = error instanceof Error ? error.message : "ログインに失敗しました";
+      message.textContent = errorText(error);
     } finally {
       button.disabled = false;
     }

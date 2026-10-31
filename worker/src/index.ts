@@ -10,7 +10,9 @@
  *   GET  /api/videos  動画一覧 ?team=チーム名（閲覧者以上）
  *   GET  /api/play    再生・保存用 URL の発行 ?key=動画の場所（閲覧者以上）
  *   GET  /media       署名付き URL での動画・サムネイル配信
+ *   *    /api/admin/* 管理者向け（一覧は admin.ts を参照）
  */
+import { AdminError, handleAdminApi } from "./admin";
 import { createToken, getRole, hasRole, passwordMatches, type Role } from "./auth";
 import { createPlayUrls, listVideos, readSettings, serveMedia } from "./videos";
 
@@ -134,6 +136,28 @@ async function handleViewerApi(request: Request, env: Env, url: URL): Promise<Re
   return json(env, urls);
 }
 
+/**
+ * 管理者向け API の入口
+ * 管理者トークンでなければ 403 を返す。エラーはアップロード関係なら記録する。
+ */
+async function handleAdmin(request: Request, env: Env, url: URL): Promise<Response> {
+  const role = await getRole(request, env.TOKEN_SECRET);
+  if (role !== "admin") {
+    log("warn", "admin_forbidden", { path: url.pathname, ip: clientIp(request) });
+    return json(env, { error: "管理者としてログインしてください" }, role ? 403 : 401);
+  }
+  try {
+    const result = await handleAdminApi(request, env, url);
+    return json(env, result.body, result.status);
+  } catch (error) {
+    if (!(error instanceof AdminError)) throw error;
+    if (url.pathname.startsWith("/api/admin/upload") || url.pathname === "/api/admin/thumb") {
+      log("warn", "upload_rejected", { path: url.pathname, status: error.status, message: error.message });
+    }
+    return json(env, { error: error.message }, error.status);
+  }
+}
+
 export default {
   /** すべてのリクエストの入口 */
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -156,6 +180,9 @@ export default {
       }
       if (["/api/teams", "/api/videos", "/api/play"].includes(url.pathname) && request.method === "GET") {
         return await handleViewerApi(request, env, url);
+      }
+      if (url.pathname.startsWith("/api/admin/")) {
+        return await handleAdmin(request, env, url);
       }
       if (url.pathname === "/media" && (request.method === "GET" || request.method === "HEAD")) {
         return await serveMedia(request, env.BUCKET, env.TOKEN_SECRET);

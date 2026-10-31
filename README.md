@@ -12,6 +12,7 @@
 | 動画の保存 | Cloudflare R2（バケット：`cocc-video-site`） | ー |
 
 詳しくは [docs/設計書.md](docs/設計書.md) を参照してください。
+管理者の使い方は [docs/運用マニュアル.md](docs/運用マニュアル.md) にまとめています。
 
 ## ディレクトリ構成
 
@@ -21,8 +22,11 @@ video-site/
 │  ├─ index.html         閲覧者用ページ
 │  ├─ administrator/     管理者用ページ
 │  ├─ css/style.css
+│  ├─ images/logo.webp   クラブのロゴ
 │  └─ js/
 │     ├─ config.js       Worker の URL などの設定
+│     ├─ dom.js          画面部品の共通関数
+│     ├─ upload.js       分割アップロード・サムネイル作成
 │     ├─ api.js          API 呼び出し・ログイン状態の保存
 │     ├─ login.js        ログイン画面の共通処理
 │     ├─ viewer.js       閲覧者ページ
@@ -31,6 +35,7 @@ video-site/
 │  ├─ src/index.ts       API の入口
 │  ├─ src/auth.ts        パスワード確認・トークン
 │  ├─ src/videos.ts      動画一覧・署名付き URL・配信
+│  ├─ src/admin.ts       管理者向け API
 │  ├─ wrangler.toml      Worker の設定（秘密情報は書かない）
 │  └─ .dev.vars.example  ローカル用の秘密情報の見本
 ├─ docs/                 設計書・手順書
@@ -57,6 +62,14 @@ video-site/
 | GET | `/api/videos?team=` | 閲覧者以上 | 動画一覧（チーム指定時はそのチーム＋チーム分けなしの動画） |
 | GET | `/api/play?key=` | 閲覧者以上 | 再生・保存用の署名付き URL（10 分有効）を発行 |
 | GET | `/media?...&sig=` | 署名付き URL | 動画・サムネイルの配信（Range 対応） |
+| GET | `/api/admin/settings` | 管理者 | 大会・チーム一覧 |
+| POST | `/api/admin/folders/add`・`/folders/delete` | 管理者 | 大会の追加・削除（削除は動画が無いときだけ） |
+| POST | `/api/admin/teams/add`・`/teams/delete` | 管理者 | チームの追加・削除（削除は動画が無いときだけ） |
+| POST | `/api/admin/rename` | 管理者 | 大会名・チーム名の変更（20 本ずつ移動、`done: true` で完了） |
+| POST | `/api/admin/videos/move` | 管理者 | 動画のチーム変更（同じ大会内） |
+| POST | `/api/admin/videos/delete` | 管理者 | 動画とサムネイルの削除 |
+| POST/PUT | `/api/admin/upload/*` | 管理者 | 分割アップロード（start → part → complete / abort） |
+| PUT | `/api/admin/thumb` | 管理者 | サムネイル（JPEG）の保存 |
 
 ## 環境変数一覧（Worker）
 

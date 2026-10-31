@@ -1,6 +1,7 @@
 // @ts-check
 // 閲覧者ページの処理：チーム選択 → 動画一覧 → モーダル再生・保存
 import { callApi } from "./api.js";
+import { byId, create, errorText } from "./dom.js";
 import { setupLogin } from "./login.js";
 
 /**
@@ -11,30 +12,6 @@ import { setupLogin } from "./login.js";
  * @property {string} name
  * @property {string | null} thumbUrl
  */
-
-/**
- * ページの要素を id で取り出す
- * @param {string} id
- * @returns {HTMLElement}
- */
-function byId(id) {
-  const element = document.getElementById(id);
-  if (!element) throw new Error(`要素が見つかりません: ${id}`);
-  return element;
-}
-
-/**
- * 要素を作る（文字は textContent で入れるので HTML として解釈されない）
- * @param {string} tag
- * @param {string} className
- * @param {string} [text]
- */
-function create(tag, className, text) {
-  const element = document.createElement(tag);
-  element.className = className;
-  if (text) element.textContent = text;
-  return element;
-}
 
 /**
  * ファイル名から拡張子を除いてタイトルにする
@@ -70,13 +47,13 @@ async function loadTeams() {
   try {
     const { teams } = await callApi("/api/teams", "viewer");
     for (const team of ["", ...teams]) {
-      const button = create("button", "button team-button", team || "すべて");
+      const button = create("button", "team-button", team || "すべて");
       button.addEventListener("click", () => loadVideos(team));
       list.append(button);
     }
     showScreen("team");
   } catch (error) {
-    showMessage(error instanceof Error ? error.message : "読み込みに失敗しました");
+    showMessage(errorText(error));
   }
 }
 
@@ -113,7 +90,7 @@ async function loadVideos(team) {
       list.append(grid);
     }
   } catch (error) {
-    showMessage(error instanceof Error ? error.message : "読み込みに失敗しました");
+    showMessage(errorText(error));
   }
 }
 
@@ -176,7 +153,7 @@ async function openPlayer(video) {
     byId("modal").classList.remove("hidden");
     player.play().catch(() => {}); // 自動再生できない端末では再生ボタンを押してもらう
   } catch (error) {
-    showMessage(error instanceof Error ? error.message : "再生できませんでした");
+    showMessage(errorText(error));
   }
 }
 
@@ -199,7 +176,7 @@ async function saveVideo(video) {
     const { downloadUrl } = await fetchUrls(video);
     window.location.href = downloadUrl; // 保存用 URL はページを移動せずにダウンロードが始まる
   } catch (error) {
-    showMessage(error instanceof Error ? error.message : "保存できませんでした");
+    showMessage(errorText(error));
   }
 }
 
