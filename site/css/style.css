@@ -1,0 +1,52 @@
+/* 共通スタイル：黒 × 青のスポーティなデザイン。色はここで定義して使い回す */
+:root {
+  --color-bg: #0b0d12;
+  --color-surface: #161a22;
+  --color-text: #f2f4f8;
+  --color-muted: #9aa3b2;
+  --color-accent: #1e7cff;
+  --radius: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.title {
+  font-size: 1.4rem;
+  border-left: 4px solid var(--color-accent);
+  padding-left: 10px;
+}
+
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.button {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.muted {
+  color: var(--color-muted);
+}
