@@ -88,5 +88,146 @@ body {
 }
 
 .hidden {
-  display: none;
+  display: none !important;
+}
+
+/* ---------- 閲覧ページ ---------- */
+
+.subtitle {
+  font-size: 1.1rem;
+}
+
+.team-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toolbar .button-sub {
+  margin-top: 0;
+}
+
+.badge {
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.folder-title {
+  font-size: 1rem;
+  margin: 24px 0 8px;
+  border-bottom: 1px solid var(--color-surface);
+  padding-bottom: 6px;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.video-card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.thumb-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #000;
+  cursor: pointer;
+}
+
+.thumb {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.thumb-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-accent);
+  font-size: 2rem;
+}
+
+.video-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.video-name {
+  flex: 1;
+  margin: 0;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.button-small {
+  background: var(--color-accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+/* ---------- 再生モーダル ---------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 960px;
+}
+
+.modal-title {
+  margin: 0 0 8px;
+}
+
+.player {
+  width: 100%;
+  max-height: 70vh;
+  background: #000;
+  border-radius: var(--radius);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.modal-actions .button-sub {
+  margin-top: 0;
+  padding: 12px 20px;
+  font-size: 1rem;
 }

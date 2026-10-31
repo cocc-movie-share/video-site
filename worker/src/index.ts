@@ -6,8 +6,13 @@
  *   GET  /api/health  動作確認
  *   POST /api/login   ログイン（閲覧者 / 管理者）
  *   GET  /api/me      ログイン状態の確認
+ *   GET  /api/teams   チーム一覧（閲覧者以上）
+ *   GET  /api/videos  動画一覧 ?team=チーム名（閲覧者以上）
+ *   GET  /api/play    再生・保存用 URL の発行 ?key=動画の場所（閲覧者以上）
+ *   GET  /media       署名付き URL での動画・サムネイル配信
  */
-import { createToken, getRole, passwordMatches, type Role } from "./auth";
+import { createToken, getRole, hasRole, passwordMatches, type Role } from "./auth";
+import { createPlayUrls, listVideos, readSettings, serveMedia } from "./videos";
 
 /** Worker に渡される設定・バインディング */
 export interface Env {
@@ -102,6 +107,33 @@ async function handleMe(request: Request, env: Env): Promise<Response> {
   return json(env, { role });
 }
 
+/**
+ * 閲覧者向け API（チーム一覧・動画一覧・再生 URL）
+ * ログインしていなければ 401 を返す。
+ */
+async function handleViewerApi(request: Request, env: Env, url: URL): Promise<Response> {
+  const role = await getRole(request, env.TOKEN_SECRET);
+  if (!hasRole(role, "viewer")) {
+    return json(env, { error: "ログインが必要です" }, 401);
+  }
+
+  if (url.pathname === "/api/teams") {
+    const settings = await readSettings(env.BUCKET);
+    return json(env, { teams: settings.teams });
+  }
+
+  if (url.pathname === "/api/videos") {
+    const team = url.searchParams.get("team") || null;
+    const videos = await listVideos(env.BUCKET, env.TOKEN_SECRET, url.origin, team);
+    return json(env, { videos });
+  }
+
+  // /api/play
+  const urls = await createPlayUrls(env.BUCKET, env.TOKEN_SECRET, url.origin, url.searchParams.get("key") ?? "");
+  if (!urls) return json(env, { error: "動画が見つかりません" }, 404);
+  return json(env, urls);
+}
+
 export default {
   /** すべてのリクエストの入口 */
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -121,6 +153,12 @@ export default {
       }
       if (url.pathname === "/api/me" && request.method === "GET") {
         return await handleMe(request, env);
+      }
+      if (["/api/teams", "/api/videos", "/api/play"].includes(url.pathname) && request.method === "GET") {
+        return await handleViewerApi(request, env, url);
+      }
+      if (url.pathname === "/media" && (request.method === "GET" || request.method === "HEAD")) {
+        return await serveMedia(request, env.BUCKET, env.TOKEN_SECRET);
       }
       return json(env, { error: "Not Found" }, 404);
     } catch (error) {
