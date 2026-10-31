@@ -30,6 +30,7 @@ video-site/
 ├─ worker/               Cloudflare Worker（TypeScript）
 │  ├─ src/index.ts       API の入口
 │  ├─ src/auth.ts        パスワード確認・トークン
+│  ├─ src/videos.ts      動画一覧・署名付き URL・配信
 │  ├─ wrangler.toml      Worker の設定（秘密情報は書かない）
 │  └─ .dev.vars.example  ローカル用の秘密情報の見本
 ├─ docs/                 設計書・手順書
@@ -52,6 +53,10 @@ video-site/
 | GET | `/api/health` | なし | 動作確認 |
 | POST | `/api/login` | なし | ログイン（閲覧者 / 管理者）。1 分 5 回まで |
 | GET | `/api/me` | 閲覧者以上 | ログイン状態の確認 |
+| GET | `/api/teams` | 閲覧者以上 | チーム一覧 |
+| GET | `/api/videos?team=` | 閲覧者以上 | 動画一覧（チーム指定時はそのチーム＋チーム分けなしの動画） |
+| GET | `/api/play?key=` | 閲覧者以上 | 再生・保存用の署名付き URL（10 分有効）を発行 |
+| GET | `/media?...&sig=` | 署名付き URL | 動画・サムネイルの配信（Range 対応） |
 
 ## 環境変数一覧（Worker）
 

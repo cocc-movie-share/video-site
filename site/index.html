@@ -23,11 +23,33 @@
       </section>
 
       <section id="main-screen" class="hidden">
-        <div class="card">
-          <p class="muted">チーム選択と動画一覧は準備中です。</p>
+        <div id="team-screen">
+          <h2 class="subtitle">チームを選択</h2>
+          <div id="team-list" class="team-list"></div>
         </div>
+
+        <div id="list-screen" class="hidden">
+          <div class="toolbar">
+            <button id="back-button" class="button-sub" type="button">← チーム選択</button>
+            <span id="current-team" class="badge"></span>
+          </div>
+          <div id="video-list"></div>
+        </div>
+
+        <p id="message" class="muted" role="status"></p>
         <button id="logout-button" class="button-sub" type="button">ログアウト</button>
       </section>
     </main>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-box">
+        <p id="modal-title" class="modal-title"></p>
+        <video id="player" class="player" controls playsinline preload="metadata"></video>
+        <div class="modal-actions">
+          <button id="modal-save-button" class="button" type="button">保存</button>
+          <button id="close-button" class="button-sub" type="button">閉じる</button>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
