@@ -21,9 +21,15 @@ video-site/
 │  ├─ index.html         閲覧者用ページ
 │  ├─ administrator/     管理者用ページ
 │  ├─ css/style.css
-│  └─ js/config.js       Worker の URL などの設定
+│  └─ js/
+│     ├─ config.js       Worker の URL などの設定
+│     ├─ api.js          API 呼び出し・ログイン状態の保存
+│     ├─ login.js        ログイン画面の共通処理
+│     ├─ viewer.js       閲覧者ページ
+│     └─ admin.js        管理者ページ
 ├─ worker/               Cloudflare Worker（TypeScript）
-│  ├─ src/index.ts
+│  ├─ src/index.ts       API の入口
+│  ├─ src/auth.ts        パスワード確認・トークン
 │  ├─ wrangler.toml      Worker の設定（秘密情報は書かない）
 │  └─ .dev.vars.example  ローカル用の秘密情報の見本
 ├─ docs/                 設計書・手順書
@@ -39,6 +45,24 @@ video-site/
 
 `main` への直接コミットはできない設定になっています。
 
+## API 一覧
+
+| メソッド | パス | 権限 | 内容 |
+|---|---|---|---|
+| GET | `/api/health` | なし | 動作確認 |
+| POST | `/api/login` | なし | ログイン（閲覧者 / 管理者）。1 分 5 回まで |
+| GET | `/api/me` | 閲覧者以上 | ログイン状態の確認 |
+
+## 環境変数一覧（Worker）
+
+| 名前 | 種類 | 内容 |
+|---|---|---|
+| `ALLOWED_ORIGIN` | 通常（wrangler.toml） | API の呼び出しを許可する画面のドメイン |
+| `MAX_UPLOAD_MB` | 通常（wrangler.toml） | アップロード上限（MB） |
+| `VIEWER_PASSWORD` | Secret | 閲覧用パスワード |
+| `ADMIN_PASSWORD` | Secret | 管理者用パスワード |
+| `TOKEN_SECRET` | Secret | ログイン用トークンの署名鍵 |
+
 ## 秘密情報の扱い
 
-パスワードや鍵は Git に入れません。Worker の Secret として登録します（手順はデプロイ手順書に記載予定）。
+パスワードや鍵は Git に入れません。Worker の Secret として登録します。手順は [docs/デプロイ手順.md](docs/デプロイ手順.md) を参照してください。

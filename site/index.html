@@ -7,13 +7,27 @@
     <meta name="robots" content="noindex" />
     <title>動画ライブラリ</title>
     <link rel="stylesheet" href="css/style.css" />
+    <script type="module" src="js/viewer.js"></script>
   </head>
   <body>
     <main class="container">
       <h1 class="title">動画ライブラリ</h1>
-      <div class="card">
-        <p class="muted">準備中です。</p>
-      </div>
+
+      <section id="login-screen" class="card hidden">
+        <form id="login-form" class="form">
+          <label for="password">閲覧パスワード</label>
+          <input id="password" class="input" type="password" autocomplete="current-password" required />
+          <button id="login-button" class="button" type="submit">ログイン</button>
+          <p id="login-error" class="error" role="alert"></p>
+        </form>
+      </section>
+
+      <section id="main-screen" class="hidden">
+        <div class="card">
+          <p class="muted">チーム選択と動画一覧は準備中です。</p>
+        </div>
+        <button id="logout-button" class="button-sub" type="button">ログアウト</button>
+      </section>
     </main>
   </body>
 </html>
