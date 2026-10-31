@@ -41,8 +41,15 @@ export async function readSettings(bucket: R2Bucket): Promise<Settings> {
   };
 }
 
+/** 設定ファイルを保存する */
+export async function writeSettings(bucket: R2Bucket, settings: Settings): Promise<void> {
+  await bucket.put("_config/settings.json", JSON.stringify(settings, null, 2), {
+    httpMetadata: { contentType: "application/json" },
+  });
+}
+
 /** 指定した場所以下のファイル名をすべて取得する（1000 件を超えても続きを読む） */
-async function listAll(bucket: R2Bucket, prefix: string): Promise<R2Object[]> {
+export async function listAll(bucket: R2Bucket, prefix: string): Promise<R2Object[]> {
   const result: R2Object[] = [];
   let cursor: string | undefined;
   do {
@@ -54,7 +61,7 @@ async function listAll(bucket: R2Bucket, prefix: string): Promise<R2Object[]> {
 }
 
 /** 動画の保存場所（key）からフォルダ・チーム・ファイル名を取り出す */
-function parseVideoKey(key: string): { folder: string; team: string | null; name: string } | null {
+export function parseVideoKey(key: string): { folder: string; team: string | null; name: string } | null {
   const parts = key.split("/"); // ["videos", フォルダ, (チーム), ファイル名]
   if (parts.length === 3) return { folder: parts[1], team: null, name: parts[2] };
   if (parts.length === 4) return { folder: parts[1], team: parts[2], name: parts[3] };

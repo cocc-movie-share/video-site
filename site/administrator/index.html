@@ -5,13 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://cocc-video-site-api.manato-inokuchi.workers.dev; media-src blob: https://cocc-video-site-api.manato-inokuchi.workers.dev; img-src 'self' blob: data: https://cocc-video-site-api.manato-inokuchi.workers.dev; style-src 'self'; script-src 'self'" />
     <meta name="robots" content="noindex" />
-    <title>管理画面</title>
+    <title>管理画面 | 動画ライブラリ</title>
     <link rel="stylesheet" href="../css/style.css" />
     <script type="module" src="../js/admin.js"></script>
   </head>
   <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <img src="../images/logo.webp" class="header-logo" alt="茅ヶ崎アウトリガーカヌークラブ" />
+        <span class="header-title">VIDEO LIBRARY ADMIN</span>
+      </div>
+    </header>
+
     <main class="container">
       <h1 class="title">管理画面</h1>
+      <div class="title-line"></div>
 
       <section id="login-screen" class="card hidden">
         <form id="login-form" class="form">
@@ -23,9 +31,61 @@
       </section>
 
       <section id="main-screen" class="hidden">
+        <p id="message" class="error" role="alert"></p>
+
+        <!-- 1. アップロード -->
         <div class="card">
-          <p class="muted">アップロードとフォルダ・チーム管理は準備中です。</p>
+          <h2 class="subtitle">動画をアップロード</h2>
+          <div class="form">
+            <div class="field">
+              <label class="field-label" for="upload-folder">大会・イベント</label>
+              <select id="upload-folder" class="input"></select>
+              <input id="new-folder" class="input hidden" type="text" maxlength="50" placeholder="新しい大会名（例：2027茅ヶ崎レース）" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="upload-team">チーム</label>
+              <select id="upload-team" class="input"></select>
+              <input id="new-team" class="input hidden" type="text" maxlength="50" placeholder="新しいチーム名（例：OC1）" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="upload-files">動画ファイル（mp4 / mov、複数選択できます）</label>
+              <input id="upload-files" class="input" type="file" multiple accept=".mp4,.mov,video/mp4,video/quicktime" />
+            </div>
+            <button id="upload-button" class="button" type="button">アップロード</button>
+          </div>
+          <ul id="upload-progress" class="progress-list"></ul>
         </div>
+
+        <!-- 2. 動画の管理 -->
+        <div class="card">
+          <h2 class="subtitle">動画の管理（チーム変更・削除）</h2>
+          <div class="field">
+            <label class="field-label" for="manage-folder">大会・イベントを選ぶ</label>
+            <select id="manage-folder" class="input"></select>
+          </div>
+          <ul id="video-manage-list" class="manage-list"></ul>
+        </div>
+
+        <!-- 3. 大会・イベント -->
+        <div class="card">
+          <h2 class="subtitle">大会・イベント</h2>
+          <ul id="folder-list" class="manage-list"></ul>
+          <form id="folder-form" class="inline-form">
+            <input id="folder-name" class="input" type="text" maxlength="50" placeholder="新しい大会名" required />
+            <button class="button" type="submit">追加</button>
+          </form>
+        </div>
+
+        <!-- 4. チーム -->
+        <div class="card">
+          <h2 class="subtitle">チーム</h2>
+          <ul id="team-list" class="manage-list"></ul>
+          <form id="team-form" class="inline-form">
+            <input id="team-name" class="input" type="text" maxlength="50" placeholder="新しいチーム名" required />
+            <button class="button" type="submit">追加</button>
+          </form>
+        </div>
+
         <button id="logout-button" class="button-sub" type="button">ログアウト</button>
       </section>
     </main>

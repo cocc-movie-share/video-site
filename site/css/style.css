@@ -1,11 +1,15 @@
-/* 共通スタイル：黒 × 青のスポーティなデザイン。色はここで定義して使い回す */
+/* 共通スタイル：クラブ公式サイト（chigasaki-outrigger-canoe-club.github.io）に合わせたデザイン
+   色・文字はここで定義して使い回す */
 :root {
-  --color-bg: #0b0d12;
-  --color-surface: #161a22;
-  --color-text: #f2f4f8;
-  --color-muted: #9aa3b2;
-  --color-accent: #1e7cff;
-  --radius: 10px;
+  --paper: #ffffff;
+  --sand: #f1eadc;
+  --ink: #12203f; /* 文字・ヘッダーの紺 */
+  --sea: #2c5a8a; /* 補助の青 */
+  --sun: #cf3a31; /* アクセントの赤 */
+  --line: rgba(18, 32, 63, 0.14);
+  --muted: #5f6b80;
+  --gothic: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+  --mincho: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
 }
 
 * {
@@ -14,75 +18,150 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Hiragino Sans", "Noto Sans JP", sans-serif;
-  background: var(--color-bg);
-  color: var(--color-text);
+  font-family: var(--gothic);
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.7;
 }
+
+/* ---------- ヘッダー ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: rgba(16, 30, 60, 0.97);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-logo {
+  height: 48px;
+  width: auto;
+}
+
+.header-title {
+  color: #fff;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- 共通部品 ---------- */
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 24px 16px 48px;
 }
 
 .title {
-  font-size: 1.4rem;
-  border-left: 4px solid var(--color-accent);
-  padding-left: 10px;
+  font-family: var(--mincho);
+  font-weight: 500;
+  font-size: 1.6rem;
+  letter-spacing: 0.06em;
+  margin: 8px 0 4px;
+}
+
+.title-line {
+  width: 64px;
+  height: 2px;
+  background: var(--sun);
+  margin-bottom: 24px;
+}
+
+.subtitle {
+  font-family: var(--mincho);
+  font-weight: 500;
+  font-size: 1.15rem;
+  margin: 0 0 12px;
 }
 
 .card {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  padding: 16px;
+  background: var(--sand);
+  padding: 20px 16px;
+  margin-bottom: 24px;
 }
 
 .button {
-  background: var(--color-accent);
+  background: var(--ink);
   color: #fff;
   border: none;
-  border-radius: var(--radius);
-  padding: 12px 20px;
+  border-radius: 0;
+  padding: 12px 22px;
+  font-family: inherit;
   font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   cursor: pointer;
 }
 
 .button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
+  cursor: default;
 }
 
 .button-sub {
-  background: transparent;
-  color: var(--color-muted);
-  border: 1px solid var(--color-muted);
-  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 0;
   padding: 8px 16px;
   margin-top: 16px;
+  font-family: inherit;
+  font-size: 0.9rem;
   cursor: pointer;
 }
 
+.button-small {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--sea);
+  border-radius: 0;
+  padding: 4px 10px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.button-danger {
+  border-left-color: var(--sun);
+  color: var(--sun);
+}
+
 .muted {
-  color: var(--color-muted);
+  color: var(--muted);
 }
 
 .form {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  max-width: 360px;
+  max-width: 420px;
 }
 
 .input {
-  background: var(--color-bg);
-  color: var(--color-text);
-  border: 1px solid var(--color-muted);
-  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 0;
   padding: 12px;
+  font-family: inherit;
   font-size: 1rem; /* 16px 未満だと iPhone で自動ズームされる */
+  width: 100%;
 }
 
 .error {
-  color: #ff6b6b;
+  color: var(--sun);
   min-height: 1.2em;
   margin: 0;
 }
@@ -91,16 +170,35 @@ body {
   display: none !important;
 }
 
-/* ---------- 閲覧ページ ---------- */
-
-.subtitle {
-  font-size: 1.1rem;
+.badge {
+  background: var(--sea);
+  color: #fff;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  white-space: nowrap;
 }
+
+/* ---------- 閲覧ページ ---------- */
 
 .team-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
+}
+
+/* チーム選択ボタン：公式サイトのボタンと同じく左に赤い線 */
+.team-button {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--sun);
+  border-radius: 0;
+  padding: 14px 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
 }
 
 .toolbar {
@@ -113,32 +211,24 @@ body {
   margin-top: 0;
 }
 
-.badge {
-  background: var(--color-accent);
-  color: #fff;
-  border-radius: 999px;
-  padding: 2px 10px;
-  font-size: 0.8rem;
-  white-space: nowrap;
-}
-
 .folder-title {
-  font-size: 1rem;
-  margin: 24px 0 8px;
-  border-bottom: 1px solid var(--color-surface);
-  padding-bottom: 6px;
+  font-family: var(--mincho);
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin: 28px 0 12px;
+  padding-left: 10px;
+  border-left: 3px solid var(--sun);
 }
 
 .video-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .video-card {
-  background: var(--color-surface);
-  border-radius: var(--radius);
-  overflow: hidden;
+  background: var(--paper);
+  border: 1px solid var(--line);
 }
 
 .thumb-button {
@@ -146,7 +236,7 @@ body {
   width: 100%;
   padding: 0;
   border: none;
-  background: #000;
+  background: var(--ink);
   cursor: pointer;
 }
 
@@ -161,7 +251,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-accent);
+  color: #fff;
   font-size: 2rem;
 }
 
@@ -181,22 +271,12 @@ body {
   white-space: nowrap;
 }
 
-.button-small {
-  background: var(--color-accent);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius);
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  cursor: pointer;
-}
-
 /* ---------- 再生モーダル ---------- */
 
 .modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(10, 14, 20, 0.92);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -210,6 +290,7 @@ body {
 }
 
 .modal-title {
+  color: #fff;
   margin: 0 0 8px;
 }
 
@@ -217,7 +298,6 @@ body {
   width: 100%;
   max-height: 70vh;
   background: #000;
-  border-radius: var(--radius);
 }
 
 .modal-actions {
@@ -226,8 +306,83 @@ body {
   margin-top: 12px;
 }
 
+.modal-actions .button {
+  background: var(--sun);
+}
+
 .modal-actions .button-sub {
   margin-top: 0;
-  padding: 12px 20px;
+  padding: 12px 22px;
   font-size: 1rem;
+}
+
+/* ---------- 管理ページ ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.progress-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.progress-item {
+  background: var(--paper);
+  border-left: 3px solid var(--sea);
+  padding: 6px 10px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.progress-item.is-error {
+  border-left-color: var(--sun);
+  color: var(--sun);
+}
+
+.manage-list {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+}
+
+.manage-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  margin-bottom: 6px;
+}
+
+.manage-name {
+  flex: 1;
+  min-width: 140px;
+  overflow-wrap: anywhere;
+}
+
+.manage-item .input {
+  width: auto;
+  padding: 4px 8px;
+}
+
+.inline-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.inline-form .input {
+  flex: 1;
 }

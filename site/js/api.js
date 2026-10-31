@@ -51,6 +51,22 @@ export async function callApi(path, role, options = {}) {
 }
 
 /**
+ * ファイルのデータ（動画の一部やサムネイル）を管理者として送る
+ * @param {string} path 例："/api/admin/thumb?key=..."
+ * @param {Blob} data
+ */
+export async function sendBinary(path, data) {
+  const response = await fetch(API_BASE_URL + path, {
+    method: "PUT",
+    headers: { Authorization: `Bearer ${getToken("admin")}`, "Content-Type": "application/octet-stream" },
+    body: data,
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error ?? "送信に失敗しました");
+  return result;
+}
+
+/**
  * ログインしてトークンを保存する
  * @param {"viewer" | "admin"} role
  * @param {string} password
