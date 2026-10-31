@@ -4,6 +4,9 @@
 name = "cocc-video-site-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+# 公開 URL（workers.dev）は使い、テスト用のプレビュー URL は作らない
+workers_dev = true
+preview_urls = false
 
 [vars]
 # GitHub Pages のドメイン（この画面からの呼び出しだけを許可する）
