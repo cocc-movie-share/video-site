@@ -19,7 +19,7 @@
 ```
 video-site/
 ├─ site/                 画面（GitHub Pages で公開）
-│  ├─ index.html         閲覧者用ページ
+│  ├─ index.html         閲覧ページ（ログイン不要）
 │  ├─ administrator/     管理者用ページ
 │  ├─ css/style.css
 │  ├─ images/logo.webp   クラブのロゴ
@@ -27,8 +27,8 @@ video-site/
 │     ├─ config.js       Worker の URL などの設定
 │     ├─ dom.js          画面部品の共通関数
 │     ├─ upload.js       分割アップロード・サムネイル作成
-│     ├─ api.js          API 呼び出し・ログイン状態の保存
-│     ├─ login.js        ログイン画面の共通処理
+│     ├─ api.js          API 呼び出し・管理者ログイン状態の保存
+│     ├─ login.js        管理者ログイン画面
 │     ├─ viewer.js       閲覧者ページ
 │     └─ admin.js        管理者ページ
 ├─ worker/               Cloudflare Worker（TypeScript）
@@ -56,11 +56,11 @@ video-site/
 | メソッド | パス | 権限 | 内容 |
 |---|---|---|---|
 | GET | `/api/health` | なし | 動作確認 |
-| POST | `/api/login` | なし | ログイン（閲覧者 / 管理者）。1 分 5 回まで |
-| GET | `/api/me` | 閲覧者以上 | ログイン状態の確認 |
-| GET | `/api/teams` | 閲覧者以上 | チーム一覧 |
-| GET | `/api/videos?team=` | 閲覧者以上 | 動画一覧（チーム指定時はそのチーム＋チーム分けなしの動画） |
-| GET | `/api/play?key=` | 閲覧者以上 | 再生・保存用の署名付き URL（10 分有効）を発行 |
+| POST | `/api/login` | なし | 管理者ログイン。1 分 5 回まで |
+| GET | `/api/me` | 管理者 | ログイン状態の確認 |
+| GET | `/api/teams` | なし | チーム一覧（1 分 60 回まで） |
+| GET | `/api/videos?team=` | なし | 動画一覧（チーム指定時はそのチーム＋チーム分けなしの動画。1 分 60 回まで） |
+| GET | `/api/play?key=` | なし | 再生・保存用の署名付き URL（10 分有効）を発行（1 分 60 回まで） |
 | GET | `/media?...&sig=` | 署名付き URL | 動画・サムネイルの配信（Range 対応） |
 | GET | `/api/admin/settings` | 管理者 | 大会・チーム一覧 |
 | POST | `/api/admin/folders/add`・`/folders/delete` | 管理者 | 大会の追加・削除（削除は動画が無いときだけ） |
@@ -77,7 +77,6 @@ video-site/
 |---|---|---|
 | `ALLOWED_ORIGIN` | 通常（wrangler.toml） | API の呼び出しを許可する画面のドメイン |
 | `MAX_UPLOAD_MB` | 通常（wrangler.toml） | アップロード上限（MB） |
-| `VIEWER_PASSWORD` | Secret | 閲覧用パスワード |
 | `ADMIN_PASSWORD` | Secret | 管理者用パスワード |
 | `TOKEN_SECRET` | Secret | ログイン用トークンの署名鍵 |
 

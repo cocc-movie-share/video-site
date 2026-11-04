@@ -4,25 +4,25 @@
  *
  * API 一覧
  *   GET  /api/health  動作確認
- *   POST /api/login   ログイン（閲覧者 / 管理者）
- *   GET  /api/me      ログイン状態の確認
- *   GET  /api/teams   チーム一覧（閲覧者以上）
- *   GET  /api/videos  動画一覧 ?team=チーム名（閲覧者以上）
- *   GET  /api/play    再生・保存用 URL の発行 ?key=動画の場所（閲覧者以上）
+ *   POST /api/login   管理者ログイン
+ *   GET  /api/me      管理者ログイン状態の確認
+ *   GET  /api/teams   チーム一覧（ログイン不要）
+ *   GET  /api/videos  動画一覧 ?team=チーム名（ログイン不要）
+ *   GET  /api/play    再生・保存用 URL の発行 ?key=動画の場所（ログイン不要）
  *   GET  /media       署名付き URL での動画・サムネイル配信
  *   *    /api/admin/* 管理者向け（一覧は admin.ts を参照）
  */
 import { AdminError, handleAdminApi } from "./admin";
-import { createToken, getRole, hasRole, passwordMatches, type Role } from "./auth";
+import { checkAdmin, createAdminToken, passwordMatches } from "./auth";
 import { createPlayUrls, listVideos, readSettings, serveMedia } from "./videos";
 
 /** Worker に渡される設定・バインディング */
 export interface Env {
   BUCKET: R2Bucket;
   LOGIN_LIMITER: RateLimit;
+  PUBLIC_LIMITER: RateLimit;
   ALLOWED_ORIGIN: string;
   MAX_UPLOAD_MB: string;
-  VIEWER_PASSWORD: string;
   ADMIN_PASSWORD: string;
   TOKEN_SECRET: string;
 }
@@ -62,61 +62,60 @@ function log(level: "warn" | "error", event: string, detail: Record<string, stri
 
 /**
  * POST /api/login
- * 送られたパスワードを確認し、正しければトークンを返す。
+ * 管理者パスワードを確認し、正しければ管理者トークンを返す。
  */
 async function handleLogin(request: Request, env: Env): Promise<Response> {
   const ip = clientIp(request);
 
-  let body: { role?: unknown; password?: unknown };
+  let body: { password?: unknown };
   try {
     body = await request.json();
   } catch {
     return json(env, { error: "リクエストの形式が正しくありません" }, 400);
   }
 
-  const role = body.role;
   const password = body.password;
-  if ((role !== "viewer" && role !== "admin") || typeof password !== "string" || password.length > 200) {
+  if (typeof password !== "string" || password.length > 200) {
     return json(env, { error: "リクエストの形式が正しくありません" }, 400);
   }
 
-  // 回数制限は「種類 + IP」ごとに数える
-  const { success } = await env.LOGIN_LIMITER.limit({ key: `${role}:${ip}` });
+  // 回数制限は IP ごとに数える
+  const { success } = await env.LOGIN_LIMITER.limit({ key: `admin:${ip}` });
   if (!success) {
-    log("warn", "login_rate_limited", { role, ip });
+    log("warn", "login_rate_limited", { ip });
     return json(env, { error: "試行回数が多すぎます。1 分ほど待ってから再度お試しください" }, 429);
   }
 
-  const expected = role === "admin" ? env.ADMIN_PASSWORD : env.VIEWER_PASSWORD;
-  if (!(await passwordMatches(password, expected))) {
-    log("warn", "login_failed", { role, ip });
+  if (!(await passwordMatches(password, env.ADMIN_PASSWORD))) {
+    log("warn", "login_failed", { ip });
     return json(env, { error: "パスワードが違います" }, 401);
   }
 
-  const { token, expiresAt } = await createToken(env.TOKEN_SECRET, role as Role);
-  return json(env, { token, role, expiresAt });
+  const { token, expiresAt } = await createAdminToken(env.TOKEN_SECRET);
+  return json(env, { token, expiresAt });
 }
 
 /**
  * GET /api/me
- * トークンが有効か確認し、利用者の種類を返す。
+ * 管理者トークンが有効か確認する。
  */
 async function handleMe(request: Request, env: Env): Promise<Response> {
-  const role = await getRole(request, env.TOKEN_SECRET);
-  if (!role) {
+  if ((await checkAdmin(request, env.TOKEN_SECRET)) !== "admin") {
     return json(env, { error: "ログインが必要です" }, 401);
   }
-  return json(env, { role });
+  return json(env, { role: "admin" });
 }
 
 /**
- * 閲覧者向け API（チーム一覧・動画一覧・再生 URL）
- * ログインしていなければ 401 を返す。
+ * 閲覧用 API（チーム一覧・動画一覧・再生 URL）。ログイン不要。
+ * 大量アクセスで R2 の利用料が増えないよう、IP ごとに回数を制限する。
  */
 async function handleViewerApi(request: Request, env: Env, url: URL): Promise<Response> {
-  const role = await getRole(request, env.TOKEN_SECRET);
-  if (!hasRole(role, "viewer")) {
-    return json(env, { error: "ログインが必要です" }, 401);
+  const ip = clientIp(request);
+  const { success } = await env.PUBLIC_LIMITER.limit({ key: ip });
+  if (!success) {
+    log("warn", "public_rate_limited", { path: url.pathname, ip });
+    return json(env, { error: "アクセスが集中しています。1 分ほど待ってから再度お試しください" }, 429);
   }
 
   if (url.pathname === "/api/teams") {
@@ -141,10 +140,10 @@ async function handleViewerApi(request: Request, env: Env, url: URL): Promise<Re
  * 管理者トークンでなければ 403 を返す。エラーはアップロード関係なら記録する。
  */
 async function handleAdmin(request: Request, env: Env, url: URL): Promise<Response> {
-  const role = await getRole(request, env.TOKEN_SECRET);
-  if (role !== "admin") {
+  const status = await checkAdmin(request, env.TOKEN_SECRET);
+  if (status !== "admin") {
     log("warn", "admin_forbidden", { path: url.pathname, ip: clientIp(request) });
-    return json(env, { error: "管理者としてログインしてください" }, role ? 403 : 401);
+    return json(env, { error: "管理者としてログインしてください" }, status === "invalid" ? 403 : 401);
   }
   try {
     const result = await handleAdminApi(request, env, url);

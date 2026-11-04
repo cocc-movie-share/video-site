@@ -1,5 +1,5 @@
 // @ts-check
-// ログイン画面の共通処理（閲覧ページ・管理ページの両方で使う）
+// 管理者ログイン画面の処理
 import { clearToken, isLoggedIn, login } from "./api.js";
 import { byId, errorText } from "./dom.js";
 
@@ -14,10 +14,9 @@ function showScreen(loggedIn) {
 
 /**
  * ログインフォームを動かす
- * @param {"viewer" | "admin"} role
  * @param {() => void} onLoggedIn ログイン後に実行する処理
  */
-export async function setupLogin(role, onLoggedIn) {
+export async function setupLogin(onLoggedIn) {
   const form = /** @type {HTMLFormElement} */ (byId("login-form"));
   const input = /** @type {HTMLInputElement} */ (byId("password"));
   const message = byId("login-error");
@@ -28,7 +27,7 @@ export async function setupLogin(role, onLoggedIn) {
     message.textContent = "";
     button.disabled = true;
     try {
-      await login(role, input.value);
+      await login(input.value);
       input.value = "";
       showScreen(true);
       onLoggedIn();
@@ -40,12 +39,12 @@ export async function setupLogin(role, onLoggedIn) {
   });
 
   byId("logout-button").addEventListener("click", () => {
-    clearToken(role);
+    clearToken();
     showScreen(false);
   });
 
   // 前回のログインがまだ有効ならそのまま表示する
-  const loggedIn = await isLoggedIn(role);
+  const loggedIn = await isLoggedIn();
   showScreen(loggedIn);
   if (loggedIn) onLoggedIn();
 }

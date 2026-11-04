@@ -21,16 +21,7 @@
       <h1 class="title">動画ライブラリ</h1>
       <div class="title-line"></div>
 
-      <section id="login-screen" class="card hidden">
-        <form id="login-form" class="form">
-          <label for="password">閲覧パスワード</label>
-          <input id="password" class="input" type="password" autocomplete="current-password" required />
-          <button id="login-button" class="button" type="submit">ログイン</button>
-          <p id="login-error" class="error" role="alert"></p>
-        </form>
-      </section>
-
-      <section id="main-screen" class="hidden">
+      <section id="main-screen">
         <div id="team-screen">
           <h2 class="subtitle">チームを選択</h2>
           <div id="team-list" class="team-list"></div>
@@ -45,7 +36,6 @@
         </div>
 
         <p id="message" class="muted" role="status"></p>
-        <button id="logout-button" class="button-sub" type="button">ログアウト</button>
       </section>
     </main>
 

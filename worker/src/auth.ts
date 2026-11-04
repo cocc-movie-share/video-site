@@ -1,22 +1,17 @@
 /**
- * 認証まわりの処理（パスワード確認・トークンの発行と検証）
+ * 認証まわりの処理（管理者パスワードの確認・トークンの発行と検証）
+ * 閲覧はログイン不要。ログインが必要なのは管理者だけ。
  * 権限の判定は必ずここ（Worker 側）で行い、画面側の判定は信用しない。
  */
 
-/** 利用者の種類 */
-export type Role = "viewer" | "admin";
-
 /** トークンに入れる中身 */
 interface TokenPayload {
-  role: Role;
+  role: "admin";
   exp: number; // 有効期限（UNIX 秒）
 }
 
-/** トークンの有効期間（秒）：閲覧者 7 日、管理者 2 時間 */
-export const TOKEN_LIFETIME: Record<Role, number> = {
-  viewer: 7 * 24 * 60 * 60,
-  admin: 2 * 60 * 60,
-};
+/** 管理者トークンの有効期間（秒）：2 時間 */
+const TOKEN_LIFETIME = 2 * 60 * 60;
 
 const encoder = new TextEncoder();
 
@@ -77,45 +72,37 @@ export async function passwordMatches(input: string, expected: string): Promise<
   return crypto.subtle.timingSafeEqual(a, b);
 }
 
-/** トークンを発行する */
-export async function createToken(secret: string, role: Role): Promise<{ token: string; expiresAt: number }> {
-  const exp = Math.floor(Date.now() / 1000) + TOKEN_LIFETIME[role];
-  const payload: TokenPayload = { role, exp };
+/** 管理者トークンを発行する */
+export async function createAdminToken(secret: string): Promise<{ token: string; expiresAt: number }> {
+  const exp = Math.floor(Date.now() / 1000) + TOKEN_LIFETIME;
+  const payload: TokenPayload = { role: "admin", exp };
   const body = toBase64Url(encoder.encode(JSON.stringify(payload)));
   const signature = await sign(secret, "token", body);
   return { token: `${body}.${signature}`, expiresAt: exp };
 }
 
-/** トークンを検証し、正しければ利用者の種類を返す（不正・期限切れなら null） */
-export async function readToken(secret: string, token: string): Promise<Role | null> {
+/** トークンを検証し、正しい管理者トークンなら true（不正・期限切れなら false） */
+async function isValidAdminToken(secret: string, token: string): Promise<boolean> {
   const [body, signature, extra] = token.split(".");
-  if (!body || !signature || extra !== undefined) return null;
-  if (!(await verify(secret, "token", body, signature))) return null;
+  if (!body || !signature || extra !== undefined) return false;
+  if (!(await verify(secret, "token", body, signature))) return false;
 
   const bytes = fromBase64Url(body);
-  if (!bytes) return null;
+  if (!bytes) return false;
   try {
     const payload = JSON.parse(new TextDecoder().decode(bytes)) as Partial<TokenPayload>;
-    if (payload.role !== "viewer" && payload.role !== "admin") return null;
-    if (typeof payload.exp !== "number" || payload.exp < Date.now() / 1000) return null;
-    return payload.role;
+    return payload.role === "admin" && typeof payload.exp === "number" && payload.exp > Date.now() / 1000;
   } catch {
-    return null;
+    return false;
   }
 }
 
 /**
- * リクエストの Authorization ヘッダーから利用者の種類を取り出す。
- * 管理者は閲覧者の操作もできる。
+ * リクエストの Authorization ヘッダーを確認する
+ * @returns "admin"：正しい管理者トークン / "invalid"：トークンはあるが不正 / "none"：トークンなし
  */
-export async function getRole(request: Request, secret: string): Promise<Role | null> {
+export async function checkAdmin(request: Request, secret: string): Promise<"admin" | "invalid" | "none"> {
   const header = request.headers.get("Authorization") ?? "";
-  if (!header.startsWith("Bearer ")) return null;
-  return readToken(secret, header.slice("Bearer ".length));
-}
-
-/** 必要な権限を満たしているか */
-export function hasRole(actual: Role | null, required: Role): boolean {
-  if (actual === "admin") return true;
-  return actual === required;
+  if (!header.startsWith("Bearer ")) return "none";
+  return (await isValidAdminToken(secret, header.slice("Bearer ".length))) ? "admin" : "invalid";
 }

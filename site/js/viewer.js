@@ -2,7 +2,6 @@
 // 閲覧者ページの処理：チーム選択 → 動画一覧 → モーダル再生・保存
 import { callApi } from "./api.js";
 import { byId, create, errorText } from "./dom.js";
-import { setupLogin } from "./login.js";
 
 /**
  * @typedef {object} Video
@@ -45,7 +44,7 @@ async function loadTeams() {
   const list = byId("team-list");
   list.replaceChildren();
   try {
-    const { teams } = await callApi("/api/teams", "viewer");
+    const { teams } = await callApi("/api/teams");
     for (const team of ["", ...teams]) {
       const button = create("button", "team-button", team || "すべて");
       button.addEventListener("click", () => loadVideos(team));
@@ -71,7 +70,7 @@ async function loadVideos(team) {
   try {
     const query = team ? `?team=${encodeURIComponent(team)}` : "";
     /** @type {{ videos: Video[] }} */
-    const { videos } = await callApi(`/api/videos${query}`, "viewer");
+    const { videos } = await callApi(`/api/videos${query}`);
     showMessage(videos.length === 0 ? "動画はまだありません。" : "");
 
     // フォルダごとにまとめる（新しい動画があるフォルダが先頭）
@@ -132,7 +131,7 @@ function videoCard(video, showTeam) {
  * @returns {Promise<{ playUrl: string, downloadUrl: string }>}
  */
 function fetchUrls(video) {
-  return callApi(`/api/play?key=${encodeURIComponent(video.key)}`, "viewer");
+  return callApi(`/api/play?key=${encodeURIComponent(video.key)}`);
 }
 
 /** モーダルで現在開いている動画 */
@@ -193,4 +192,7 @@ document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closePlayer();
 });
 
-setupLogin("viewer", loadTeams);
+// 以前のログイン方式で保存したトークンが残っていれば消す（閲覧はログイン不要になった）
+localStorage.removeItem("token-viewer");
+
+loadTeams();

@@ -48,7 +48,7 @@ export function createThumbnail(file) {
  * @param {(percent: number) => void} onProgress 進み具合（0〜100）
  */
 export async function uploadVideo(file, folder, team, onProgress) {
-  const start = await callApi("/api/admin/upload/start", "admin", {
+  const start = await callApi("/api/admin/upload/start", {
     method: "POST",
     body: JSON.stringify({ folder, team, fileName: file.name, size: file.size }),
   });
@@ -64,13 +64,13 @@ export async function uploadVideo(file, folder, team, onProgress) {
       parts.push({ partNumber: part.partNumber, etag: part.etag });
       onProgress(Math.round((n / partCount) * 95));
     }
-    await callApi("/api/admin/upload/complete", "admin", {
+    await callApi("/api/admin/upload/complete", {
       method: "POST",
       body: JSON.stringify({ key, uploadId, parts }),
     });
   } catch (error) {
     // 途中で失敗したら、送りかけのデータを捨てる
-    await callApi("/api/admin/upload/abort", "admin", {
+    await callApi("/api/admin/upload/abort", {
       method: "POST",
       body: JSON.stringify({ key, uploadId }),
     }).catch(() => {});
