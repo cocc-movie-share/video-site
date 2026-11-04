@@ -33,7 +33,7 @@ function showMessage(text) {
  * @param {object} body
  */
 function post(path, body) {
-  return callApi(`/api/admin${path}`, "admin", { method: "POST", body: JSON.stringify(body) });
+  return callApi(`/api/admin${path}`, { method: "POST", body: JSON.stringify(body) });
 }
 
 /** チームの選択肢（先頭は「チームなし」） */
@@ -43,7 +43,7 @@ function teamOptions() {
 
 /** 大会・チームの一覧を読み込み、画面のプルダウンと一覧を作り直す */
 async function loadSettings() {
-  settings = await callApi("/api/admin/settings", "admin");
+  settings = await callApi("/api/admin/settings");
   const folders = settings.folders.map((f) => ({ value: f, label: f }));
 
   setOptions(uploadFolder, [...folders, { value: NEW, label: "＋ 新しい大会・イベントを追加" }]);
@@ -134,7 +134,7 @@ async function loadManageVideos() {
   if (!folder) return;
 
   /** @type {{ videos: { key: string, folder: string, team: string | null, name: string }[] }} */
-  const { videos } = await callApi("/api/videos", "admin");
+  const { videos } = await callApi("/api/videos");
   const inFolder = videos.filter((v) => v.folder === folder);
   if (inFolder.length === 0) {
     list.append(create("li", "manage-item muted", "この大会の動画はまだありません"));
@@ -282,4 +282,4 @@ byId("upload-button").addEventListener("click", startUpload);
 setupAddForm("folder");
 setupAddForm("team");
 
-setupLogin("admin", () => loadSettings().catch((e) => showMessage(errorText(e))));
+setupLogin(() => loadSettings().catch((e) => showMessage(errorText(e))));
